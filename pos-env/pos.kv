@@ -1,0 +1,249 @@
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDTextField kivymd.uix.textfield.MDTextField
+#:import MDGridLayout kivymd.uix.gridlayout.MDGridLayout
+#:import MDList kivymd.uix.list.MDList
+#:import MDButton kivymd.uix.button.MDButton
+#:import MDScreen kivymd.uix.screen.MDScreen
+#:import MDLabel kivymd.uix.label.MDLabel
+
+ScreenManager:
+    MenuScreen:
+    OrderScreen:
+    TimeSelectionScreen:
+
+<MenuScreen>:
+    name: "menu"
+    md_bg_color: [1, 1, 1, 1]  # Sfondo bianco
+
+    MDBoxLayout:
+        orientation: "horizontal"
+        spacing: "5dp"
+        padding: "5dp"
+
+        # 📌 SEZIONE 1: GRIGLIA PRODOTTI E RICERCA (SINISTRA)
+        MDBoxLayout:
+            orientation: "vertical"
+            size_hint_x: 0.6  # Espanso per occuparlo maggiormente
+            spacing: "5dp"
+            md_bg_color: 0, 0, 0, 1
+
+            MDTextField:
+                id: search_field
+                hint_text: "Cerca un prodotto..."
+                text_color: "black"
+                opacity: 1  # Mostriamo il campo di ricerca
+                size_hint_y: None
+                height: "48dp"
+                on_text: app.search_menu(self.text)
+
+            ScrollView:
+                MDGridLayout:
+                    id: menu_grid
+                    cols: 4
+                    spacing: "5dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: "5dp"
+
+        # 📌 SEZIONE 2: BOTTONI CATEGORIE (IN BASSO SINISTRA)
+        MDBoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: "60dp"
+            spacing: "5dp"
+            md_bg_color: 0, 1, 0, 1
+
+            MDButton:
+                text: "PIZZERIA"
+                md_bg_color: 1, 0, 0, 1
+                text_color: "black"
+                on_release: app.show_category("pizzeria")
+
+            MDButton:
+                text: "PIADINE"
+                md_bg_color: 1, 0.5, 0, 1
+                text_color: "black"
+                on_release: app.show_category("piadine")
+
+        # 📌 SEZIONE 3: RIEPILOGO ORDINE E CALCOLATRICE (DESTRA)
+        MDBoxLayout:
+            orientation: "vertical"
+            size_hint_x: 0.4  # Più stretto rispetto alla sezione sinistra
+            spacing: "5dp"
+            md_bg_color: 0, 1, 0, 1
+
+            # Riepilogo ordine e totale
+            MDLabel:
+                text: "Riepilogo Ordine"
+                halign: "center"
+                text_style: "TitleMedium"
+                text_color: "black"
+                size_hint_y: None
+                height: "48dp"
+                md_bg_color: 1, 1, 1, 1
+
+            ScrollView:
+                MDList:
+                    id: order_list
+                    spacing: "5dp"
+                    padding: "5dp"
+
+            MDLabel:
+                id: total_label
+                text: "Totale: 0.00€"
+                halign: "center"
+                text_style: "TitleSmall"
+                text_color: "black"
+                size_hint_y: None
+                height: "48dp"
+
+            # 📌 TASTIERINO NUMERICO
+            MDGridLayout:
+                cols: 3
+                spacing: "5dp"
+                size_hint_y: None
+                height: "180dp"  # Altezza fissa per tastierino numerico
+
+                MDButton:
+                    text: "7"
+                    md_bg_color: 1, 1, 1, 1
+                    text_color: "black"
+                    on_release: app.num_press("7")
+                MDButton:
+                    text: "8"
+                    md_bg_color: 1, 1, 1, 1
+                    text_color: "black"
+                    on_release: app.num_press("8")
+                MDButton:
+                    text: "9"
+                    md_bg_color: 1, 1, 1, 1
+                    text_color: "black"
+                    on_release: app.num_press("9")
+
+                MDButton:
+                    text: "4"
+                    md_bg_color: 1, 1, 1, 1
+                    text_color: "black"
+                    on_release: app.num_press("4")
+                MDButton:
+                    text: "5"
+                    md_bg_color: 1, 1, 1, 1
+                    text_color: "black"
+                    on_release: app.num_press("5")
+                MDButton:
+                    text: "6"
+                    md_bg_color: 1, 1, 1, 1
+                    text_color: "black"
+                    on_release: app.num_press("6")
+
+                MDButton:
+                    text: "1"
+                    md_bg_color: 1, 1, 1, 1
+                    text_color: "black"
+                    on_release: app.num_press("1")
+                MDButton:
+                    text: "2"
+                    md_bg_color: 1, 1, 1, 1
+                    text_color: "black"
+                    on_release: app.num_press("2")
+                MDButton:
+                    text: "3"
+                    md_bg_color: 1, 1, 1, 1
+                    text_color: "black"
+                    on_release: app.num_press("3")
+
+                MDButton:
+                    text: "C"
+                    md_bg_color: 1, 0, 0, 1
+                    text_color: "black"
+                    on_release: app.clear_input()
+                MDButton:
+                    text: "0"
+                    md_bg_color: 1, 1, 1, 1
+                    text_color: "black"
+                    on_release: app.num_press("0")
+                MDButton:
+                    text: "OK"
+                    md_bg_color: 0, 1, 0, 1
+                    text_color: "black"
+                    on_release: app.confirm_quantity()
+
+
+<OrderScreen>:
+    name: "orders"   
+    MDBoxLayout:
+        orientation: "vertical"
+        padding: "10dp"
+        md_bg_color: 0, 0, 1, 0.2  # 🔹 Aiuta a vedere se questo layout è troppo grande
+
+        MDLabel:
+            text: "Ordini in attesa"
+            halign: "center"
+            text_style: "TitleMedium"
+            text_color: "black"
+
+        ScrollView:
+            size_hint_y: 0.7  # 🔹 Riduce lo spazio occupato dalla lista
+            MDBoxLayout:
+                id: order_list_container
+                orientation: "vertical"
+                size_hint_y: None
+                height: self.minimum_height  # 🔹 Permette alla lista di crescere dinamicamente
+                md_bg_color: 1, 0, 0, 0.3  # 🔹 Aiuta a debuggare lo spazio occupato
+
+                MDList:
+                    id: order_list  # ✅ Ora Kivy lo trova!
+
+        MDGridLayout:
+            cols: 2
+            size_hint_y: 0.3  # 🔹 Diamo più spazio alla lista sopra
+            spacing: "5dp"
+
+            MDButton:
+                text: "Richiama Asporto"
+                style: "elevated"
+                on_release: app.load_orders("Asporto")
+                text_color: "black"
+            MDButton:
+                text: "Richiama Domicilio"
+                style: "elevated"
+                on_release: app.load_orders("Domicilio")
+                text_color: "black"
+
+<TimeSelectionScreen>:
+    name: "time_selection"
+    md_bg_color: [1, 1, 1, 1]  # Sfondo bianco per tutte le schermate    
+    MDBoxLayout:
+        orientation: "vertical"
+        padding: "10dp"
+
+        MDLabel:
+            text: "Seleziona un orario di consegna"
+            halign: "center"
+            text_style: "TitleMedium"
+            text_color: "black"
+
+        MDGridLayout:
+            cols: 4
+            spacing: "5dp"
+
+            MDButton:
+                text: "19:00"
+                style: "elevated"
+                on_release: app.set_delivery_time("19:00")
+                text_color: "black"
+            MDButton:
+                text: "19:15"
+                style: "elevated"
+                on_release: app.set_delivery_time("19:15")
+                text_color: "black"
+            MDButton:
+                text: "19:30"
+                style: "elevated"
+                on_release: app.set_delivery_time("19:30")
+                text_color: "black"
+            MDButton:
+                text: "19:45"
+                style: "elevated"
+                on_release: app.set_delivery_time("19:45")
+                text_color: "black"
