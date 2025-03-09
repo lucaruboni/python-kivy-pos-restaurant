@@ -46,7 +46,7 @@ class Database:
                 item_name TEXT NOT NULL,
                 quantity INTEGER DEFAULT 1,
                 price REAL NOT NULL,
-                notes TEXT,  -- Per ingredienti aggiunti o rimossi
+                notes TEXT,
                 FOREIGN KEY(order_id) REFERENCES orders(id)
             );
 
@@ -74,9 +74,26 @@ class Database:
                 details TEXT,
                 timestamp TEXT DEFAULT CURRENT_TIMESTAMP
             );
+
+            -- CATEGORIE: Per gestire le categorie di prodotto, inclusa la posizione nella griglia
+            CREATE TABLE IF NOT EXISTS categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                grid_slot INTEGER DEFAULT NULL
+            );
+
+            -- CATEGORY_PRODUCTS: Prodotti associati ad una categoria
+            CREATE TABLE IF NOT EXISTS category_products (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                category_id INTEGER,
+                product_name TEXT NOT NULL,
+                price REAL NOT NULL,
+                FOREIGN KEY(category_id) REFERENCES categories(id)
+            );     
+                                                                              
         """)
         self.conn.commit()
-        
+
     def insert_menu_item(self, name, price, category):
         """Aggiunge un nuovo elemento al menu"""
         try:
@@ -108,7 +125,7 @@ class Database:
         return self.cursor.fetchall()
 
     def search_menu(self, query):
-        """Cerca piatti nel menu (senza premere invio, ricerca live)"""
+        """Cerca piatti nel menu (ricerca live)"""
         self.cursor.execute("SELECT * FROM menu WHERE name LIKE ?", ('%' + query + '%',))
         return self.cursor.fetchall()
 
@@ -141,3 +158,59 @@ class Database:
         """Recupera i dettagli di un ordine specifico"""
         self.cursor.execute("SELECT item_name, quantity, price, notes FROM order_items WHERE order_id = ?", (order_id,))
         return self.cursor.fetchall()
+
+    # Nuove funzioni per le categorie
+
+    def insert_category(self, name):
+        """Inserisce una nuova categoria nel database"""
+        try:
+            self.cursor.execute("INSERT INTO categories (name) VALUES (?)", (name,))
+            self.conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            return False  # Categoria già esistente
+
+    def update_category(self, category_id, new_name):
+        """Aggiorna il nome di una categoria"""
+        try:
+            self.cursor.execute("UPDATE categories SET name = ? WHERE id = ?", (new_name, category_id))
+            self.conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            return False
+
+    def fetch_categories(self):
+        self.cursor.execute("SELECT id, name, grid_slot FROM categories ORDER BY grid_slot ASC")
+        return self.cursor.fetchall()
+    
+    def fetch_category_products(self, category_id):
+        self.cursor.execute("SELECT * FROM category_products WHERE category_id = ?", (category_id,))
+        return self.cursor.fetchall()
+    
+    def insert_category(self, name, grid_slot=None):
+        """Inserisce una nuova categoria nel database.
+           Restituisce l'ID della categoria se l'inserimento è andato a buon fine, altrimenti None."""
+        try:
+            self.cursor.execute("INSERT INTO categories (name, grid_slot) VALUES (?, ?)", (name, grid_slot))
+            self.conn.commit()
+            return self.cursor.lastrowid
+        except sqlite3.IntegrityError:
+            return None
+
+    def get_category_id(self, name):
+        """Restituisce l'ID della categoria con il nome dato."""
+        self.cursor.execute("SELECT id FROM categories WHERE name = ?", (name,))
+        row = self.cursor.fetchone()
+        return row[0] if row else None
+
+    def insert_category_product(self, category_id, product_name, price):
+        """Inserisce un prodotto associato a una categoria."""
+        try:
+            self.cursor.execute(
+                "INSERT INTO category_products (category_id, product_name, price) VALUES (?, ?, ?)",
+                (category_id, product_name, price)
+            )
+            self.conn.commit()
+            return self.cursor.lastrowid
+        except sqlite3.IntegrityError:
+            return None
