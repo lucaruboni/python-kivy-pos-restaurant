@@ -16,6 +16,8 @@ from kivy.uix.popup import Popup
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.list import MDListItem
 from kivy.uix.label import Label
+from kivymd.uix.chip import MDChip, MDChipText
+from kivy.properties import ListProperty
 import sqlite3
 import hashlib
 import os
@@ -38,7 +40,29 @@ class OptionScreen(Screen):
 class CreateCategoryScreen(Screen):
     pass
 
+
+class CategoryChip(MDChip):
+    my_text = StringProperty("")
+
+    def __init__(self, **kwargs):
+        if "text" in kwargs:
+            self.my_text = kwargs.pop("text")
+        # Imposta il tipo filter e il colore selezionato:
+        kwargs.setdefault("type", "filter")
+        kwargs.setdefault("selected_color", [0, 0.5, 1, 1])  # ad esempio un blu acceso
+        kwargs.setdefault("md_bg_color", [1, 1, 1, 1])
+        super().__init__(**kwargs)
+        chip_text = MDChipText(
+            text=self.my_text,
+            theme_text_color="Custom",
+            text_color=[0, 0, 0, 1],
+        )
+        self.add_widget(chip_text)
+
 class MenuScreen(Screen):
+    pass
+
+class SearchProductScreen(Screen):
     pass
 
 class OrderScreen(Screen):
@@ -53,6 +77,9 @@ class POSPizzeriaApp(MDApp):
     delivery_time_text = StringProperty("Ora")
     customer_name_text = StringProperty("Cliente al banco")
     articles_text = StringProperty("0")
+    selected_category = StringProperty("")
+    current_category = StringProperty("")  
+    order_items = ListProperty([])  # Questa lista conterrà gli articoli dell'ordine
 
 
     def build(self):
@@ -137,29 +164,34 @@ class POSPizzeriaApp(MDApp):
         else:
             self.show_error_popup("Errore: la categoria potrebbe già esistere.")
 
-    def add_product_to_category(self, cat_name, prod_name, prod_price_text):
-        cat_name = cat_name.strip()
-        prod_name = prod_name.strip()
-        if not (cat_name and prod_name and prod_price_text.strip()):
+    def add_product_to_category(self, product_name, product_price_text):
+        category_name = self.selected_category.strip()
+        product_name = product_name.strip()
+        if not (category_name and product_name and product_price_text.strip()):
             self.show_error_popup("Compila tutti i campi per il prodotto.")
             return
         try:
-            prod_price = float(prod_price_text)
+            prod_price = float(product_price_text)
         except ValueError:
             self.show_error_popup("Il prezzo deve essere un numero.")
             return
 
-        # Trova l'ID della categoria
-        cat_id = self.db.get_category_id(cat_name)
+        cat_id = self.db.get_category_id(category_name)
         if cat_id is None:
             self.show_error_popup("Categoria non trovata. Salva la categoria prima di aggiungere prodotti.")
             return
 
-        result = self.db.insert_category_product(cat_id, prod_name, prod_price)
+        result = self.db.insert_category_product(cat_id, product_name, prod_price)
         if result:
-            print(f"Prodotto '{prod_name}' aggiunto alla categoria '{cat_name}' con prezzo {prod_price}.")
+            print(f"Prodotto '{product_name}' aggiunto alla categoria '{category_name}' con prezzo {prod_price}.")
         else:
             self.show_error_popup("Errore nell'aggiunta del prodotto.")
+
+    def go_to_search_screen_with_hero(self, category_name):
+        self.current_category = category_name
+        self.root.current_heroes = ["order_summary"]
+        self.root.current = "search_product"  # Assicurati che il nome dello screen sia corretto
+        self.load_products(category_name)
 
     def load_categories(self):
         # Recupera lo screen "menu" e la griglia
@@ -177,38 +209,54 @@ class POSPizzeriaApp(MDApp):
         for cat in sorted_categories:
             box = ClickableBox(text=cat[1])
             # Quando il box viene cliccato, chiama il metodo per mostrare i prodotti
-            box.bind(on_release=lambda instance, cat_id=cat[0]: self.show_category_products(cat_id))
+            box.bind(on_release=lambda instance, cat_name=cat[1]: self.go_to_search_screen_with_hero(cat_name))
             grid.add_widget(box)
-        
 
-    def open_category_menu(self, widget):
-        # widget è il MDTextField che attiverà il menu
+    def load_category_chips(self):
+        screen = self.root.get_screen("create_category")
+        chip_box = screen.ids.category_chip_box
+        chip_box.clear_widgets()
         categories = self.db.fetch_categories()  # Supponiamo che ritorni tuple (id, name, grid_slot)
-        menu_items = [
-            {"viewclass": "OneLineListItem",
-             "text": cat[1],
-             "md_bg_color": (0, 0, 0, 1),
-             "on_release": lambda x=cat[1]: self.set_category(widget, x)}
-            for cat in categories
-        ]
-        self.menu = MDDropdownMenu(
-            caller=widget,
-            items=menu_items,
-            width_mult=4,
-        )
-        self.menu.open()
+        # Ordina per grid_slot (se None, lo posizioniamo alla fine)
+        sorted_categories = sorted(categories, key=lambda x: x[2] if x[2] is not None else 999)
+        for cat in sorted_categories:
+            chip = CategoryChip(text=cat[1])
+            chip.bind(on_release=lambda instance, cat_name=cat[1]: self.select_chip(instance, cat_name))
+            chip_box.add_widget(chip)
 
-    def set_category(self, widget, category_name):
-        widget.text = category_name
-        self.menu.dismiss()
+    def select_chip(self, selected_chip, cat_name):
+        screen = self.root.get_screen("create_category")
+        chip_box = screen.ids.category_chip_box
+        # Imposta tutti i chip come non attivi
+        for chip in chip_box.children:
+            chip.active = False
+        # Imposta il chip cliccato come attivo
+        selected_chip.active = True
+        self.selected_category = cat_name
+        print("Categoria selezionata:", cat_name)
+        self.load_products_for_category(cat_name)
+
+    def load_products_for_category(self, cat_name):
+        screen = self.root.get_screen("create_category")
+        product_box = screen.ids.product_list_box
+        product_box.clear_widgets()
+        cat_id = self.db.get_category_id(cat_name)
+        if not cat_id:
+            return
+        products = self.db.fetch_category_products(cat_id)
+        if not products:
+            from kivy.uix.label import Label
+            product_box.add_widget(Label(text="Nessun prodotto", color=(0,0,0,1)))
+        else:
+            for prod in products:
+                # Supponiamo che prod sia una tupla (id, category_id, product_name, price)
+                from kivy.uix.label import Label
+                product_box.add_widget(Label(text=f"{prod[2]} - {prod[3]:.2f}€", color=(0,0,0,1)))        
 
     # -----------------------------
     # Metodi per la cassa (MenuScreen)
     # -----------------------------
 
-    def on_start(self):
-        """Al termine del caricamento, carica gli ordini dal database"""
-        Clock.schedule_once(self.load_orders, 1)
 
     def show_category_products(self, cat_id):
         products = self.db.fetch_category_products(cat_id)  # Assicurati di avere questo metodo nel tuo database
@@ -225,57 +273,106 @@ class POSPizzeriaApp(MDApp):
                       size_hint=(None, None), size=(400, 400))
         popup.open()
 
+    def show_search_product_screen(self, category_name):
+        # Salva la categoria corrente in un attributo dell'app
+        self.current_category = category_name
+        # Passa allo screen "search_product"
+        self.root.current = "search_product"
+        # Carica i prodotti di questa categoria
+        self.load_products(category_name)
 
-    def add_to_order(self, name, price):
-        """Aggiunge un prodotto all'ordine e aggiorna il totale"""
-        screen = self.root.get_screen("menu")
+    def load_products(self, category_name):
+        screen = self.root.get_screen("search_product")
+        product_grid = screen.ids.product_grid_search
+        product_grid.clear_widgets()
+
+        # Recupera i prodotti della categoria dalla tabella category_products
+        products = self.db.fetch_products_by_category(category_name)
+        if not products:
+            from kivy.uix.label import Label
+            product_grid.add_widget(Label(text="Nessun prodotto trovato", color=(0,0,0,1)))
+        else:
+            for prod in products:
+                # Assumiamo che prod sia una tupla (id, category_id, product_name, price)
+                try:
+                    price = float(prod[3])
+                except Exception:
+                    price = 0.0
+                # Crea un clickable box con il nome e il prezzo formattato
+                item_box = ClickableBoxSearch(text=f"{prod[2]}\n{price:.2f}€")
+                # Quando il box viene cliccato, aggiungi il prodotto all'ordine
+                item_box.bind(on_release=lambda instance, p=prod: self.add_to_order(p))
+                product_grid.add_widget(item_box)
+
+
+    def filter_products(self, letter):
+        # Recupera i prodotti della categoria corrente
+        # e filtra quelli che iniziano per lettera
+        screen = self.root.get_screen("search_product")
+        product_grid = screen.ids.product_grid_search
+        product_grid.clear_widgets()
+
+        if letter == "":
+            # Mostra tutti i prodotti
+            products = self.db.fetch_products_by_category(self.current_category)
+        else:
+            products = self.db.fetch_products_by_first_letter(self.current_category, letter)
+
+        for prod in products:
+            item_box = ClickableBoxSearch(text=f"{prod[2]}\n{prod[3]:.2f}€")
+            item_box.bind(on_release=lambda instance, p=prod: self.add_to_order(p))
+            product_grid.add_widget(item_box)
+
+    def add_to_order(self, product):
+        # product è una tupla (id, nome, prezzo, ...)
+        screen = self.root.get_screen("search_product")
         order_list = screen.ids.order_list
-        order_list.add_widget(MDListItem(text=f"{name} - {price}€"))
-        self.update_total(price)
+        # Aggiungi un item alla lista
+        from kivymd.uix.list import MDListItem
+        order_list.add_widget(MDListItem(text=f"{product[2]} - {product[3]:.2f}€"))
+        # Aggiorna il totale
+        self.update_total(product[2])
 
-    def update_total(self, price):
-        """Aggiorna il totale dell'ordine in tempo reale"""
-        screen = self.root.get_screen("menu")
-        total_label = screen.ids.total_label
-        # Estrae il totale corrente dal testo (supponendo il formato "Totale: X.XX€")
-        current_total = float(total_label.text.split(": ")[1].replace("€", ""))
-        total_label.text = f"Totale: {current_total + price:.2f}€"
+    def go_to_search_product_screen(self):
+        # Diciamo che il tag del hero e' "order_summary"
+        self.root.current_heroes = ["order_summary"]
+        self.root.current = "search_product"
 
-    def load_orders(self, *args):
-        """Carica gli ordini dal database nello schermo degli ordini"""
+    def add_to_order(self, product):
+        """
+        product è una tupla o un dizionario contenente i dati del prodotto, ad esempio
+        (id, nome, prezzo). Qui salviamo i dettagli che ci interessano.
+        """
+        self.order_items.append({
+            "id": product[1],
+            "name": product[2],
+            "price": product[3]
+        })
+        print("Articolo aggiunto all'ordine:", self.order_items)
+        self.update_order_summary()  # Aggiorna la vista del riepilogo ordine
+
+    def update_order_summary(self):
+        # Supponiamo che il riepilogo ordine sia nello screen "menu" oppure in "search_product"
+        # e che l'id della MDList sia "order_list"
         try:
-            screen = self.root.get_screen("orders")
-            if "order_list" not in screen.ids:
-                print("❌ ERRORE: `order_list` non trovato in pos.kv!")
-                return
-
+            # Prova ad ottenere lo screen corrente; se vuoi usare uno screen specifico, ad esempio "menu":
+            screen = self.root.get_screen("menu")
             order_list = screen.ids.order_list
-            order_list.clear_widgets()
+        except Exception:
+            # Se lo screen "menu" non è disponibile, prova un altro (es. "search_product")
+            screen = self.root.get_screen("search_product")
+            order_list = screen.ids.order_list
 
-            for order in self.db.fetch_orders():
-                item = MDListItem(
-                    text=f"Ordine {order[0]} - {order[4]}",
-                    on_release=lambda x, order_id=order[0]: self.view_order(order_id)
-                )
-                order_list.add_widget(item)
-    
-        except Exception as e:
-            print(f"❌ ERRORE load_orders(): {e}")
+        order_list.clear_widgets()
+        total = 0.0
+        from kivymd.uix.list import MDListItem
+        for item in self.order_items:
+            # Crea un widget per ogni articolo; ad esempio, usando MDListItem
+            order_list.add_widget(MDListItem(text=f"{item['name']} - {item['price']:.2f}€"))
+            total += item['price']
+        # Aggiorna anche il totale
+        screen.ids.total_label.text = f"Totale: {total:.2f}€"
 
-    def view_order(self, order_id):
-        """Mostra i dettagli di un ordine (ad esempio in console)"""
-        details = self.db.fetch_order_details(order_id)
-        print(f"📝 Dettagli ordine {order_id}: {details}")
-
-    def send_to_kitchen(self, order_id):
-        """Invia la comanda alla cucina"""
-        details = self.db.fetch_order_details(order_id)
-        print(f"🍕 Stampo comanda per ordine {order_id}: {details}")
-
-    def print_preconto(self, order_id):
-        """Stampa il preconto per il cliente o rider"""
-        details = self.db.fetch_order_details(order_id)
-        print(f"🧾 Stampo preconto per ordine {order_id}: {details}")
 
     def num_press(self, number):
         """Gestisce la pressione di un numero sul tastierino"""
@@ -292,7 +389,11 @@ class OneLineListItem(MDListItem):
 
 class ClickableBox(ButtonBehavior, BoxLayout):
     text = StringProperty("")  # Proprietà osservabile
+    def on_release(self):
+        print("Cella cliccata!", self)
 
+class ClickableBoxSearch(ButtonBehavior, BoxLayout):
+    text = StringProperty("")
     def on_release(self):
         print("Cella cliccata!", self)
 

@@ -214,3 +214,50 @@ class Database:
             return self.cursor.lastrowid
         except sqlite3.IntegrityError:
             return None
+
+    def fetch_products_by_first_letter(self, category_id, letter):
+        """
+        Restituisce i prodotti associati a una determinata categoria (category_id)
+        il cui nome inizia per 'letter'. Se letter è una stringa vuota, restituisce
+        tutti i prodotti della categoria.
+        """
+        if letter:
+            query = """
+                SELECT id, category_id, product_name, price
+                FROM category_products
+                WHERE category_id = ? AND product_name LIKE ?
+                ORDER BY product_name
+            """
+            self.cursor.execute(query, (category_id, letter + '%'))
+        else:
+            query = """
+                SELECT id, category_id, product_name, price
+                FROM category_products
+                WHERE category_id = ?
+                ORDER BY product_name
+            """
+            self.cursor.execute(query, (category_id,))
+        return self.cursor.fetchall()
+
+    def get_category_id(self, category_name):
+        """Restituisce l'ID della categoria dato il nome."""
+        self.cursor.execute("SELECT id FROM categories WHERE name = ?", (category_name,))
+        row = self.cursor.fetchone()
+        return row[0] if row else None
+
+    def fetch_products_by_category(self, category_name):
+        """
+        Restituisce i prodotti associati alla categoria con il nome dato.
+        I prodotti vengono prelevati dalla tabella category_products.
+        """
+        cat_id = self.get_category_id(category_name)
+        if cat_id is None:
+            return []  # Categoria non trovata
+        query = """
+            SELECT id, category_id, product_name, price
+            FROM category_products
+            WHERE category_id = ?
+            ORDER BY product_name
+        """
+        self.cursor.execute(query, (cat_id,))
+        return self.cursor.fetchall()
