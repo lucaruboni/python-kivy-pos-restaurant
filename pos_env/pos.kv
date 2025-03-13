@@ -1,0 +1,1040 @@
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDTextField kivymd.uix.textfield.MDTextField
+#:import MDGridLayout kivymd.uix.gridlayout.MDGridLayout
+#:import OneLineListItem main.OneLineListItem
+#:import MDList kivymd.uix.list.MDList
+#:import MDButton kivymd.uix.button.MDButton
+#:import MDScreen kivymd.uix.screen.MDScreen
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDDivider kivymd.uix.divider.MDDivider
+#:import MDHeroFrom kivymd.uix.hero.MDHeroFrom
+#:import MDHeroTo kivymd.uix.hero.MDHeroTo
+
+<POSPizzeriaApp@ScreenManager>:
+    LoginScreen:
+    OptionScreen:
+    CreateCategoryScreen:
+    MenuScreen:
+    SearchProductScreen:
+    OrderScreen:
+    TimeSelectionScreen:
+
+<ClickableBox>:
+    orientation: "vertical"
+    size_hint: 1, 1
+    canvas.before:
+        # Ombra (offset di qualche pixel in basso/destra e un po' di trasparenza)
+        Color:
+            rgba: 0, 0, 0, 0.2   # nero trasparente
+        Rectangle:
+            pos: self.x + 2, self.y - 2
+            size: self.size
+
+        # Sfondo principale
+        Color:
+            rgba: 1, 1, 1, 1    # colore di riempimento
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+        # Bordo
+        Color:
+            rgba: 0, 0, 0, 1    # nero
+        Line:
+            width: 1
+            rectangle: (self.x, self.y, self.width, self.height)
+
+    # Aggiungi un MDLabel che mostra la proprietà `text` di ClickableBox
+    MDLabel:
+        text: root.text
+        halign: "center"
+        valign: "middle"
+        color: 0, 0, 0, 1
+
+<ClickableBoxSearch>:
+    orientation: "vertical"
+    # Non forziamo un'altezza fissa; l'altezza sarà determinata dal contenuto
+    size_hint_y: None
+    # Usa un padding interno per dare spazio al testo
+    padding: "50dp"
+    # Il widget calcola la sua altezza minima in base al contenuto
+    height: self.minimum_height
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 0.2
+        Rectangle:
+            pos: self.x + 2, self.y - 2
+            size: self.size
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: 0, 0, 0, 1
+        Line:
+            width: 1
+            rectangle: (self.x, self.y, self.width, self.height)
+    MDLabel:
+        text: root.text
+        halign: "center"
+        valign: "middle"
+        # Usa un padding interno se necessario
+        padding: "5dp", "5dp"
+        color: 0, 0, 0, 1
+
+
+<OneLineListItem>:
+    theme_text_color: "Custom"
+    text_color: 0, 0, 0, 1       
+
+        
+
+# ----------------------------------------------------
+# Schermo di Login
+# ----------------------------------------------------
+<LoginScreen>:
+    name: "login"
+    MDBoxLayout:
+        orientation: "vertical"
+        padding: "30dp"
+        padding_top: "100dp"
+        md_bg_color: 1, 1, 1, 1
+        spacing: "10dp"
+        MDLabel:
+            text: "BENVENUTO"
+            color: 0, 0, 0, 1
+            halign: "center"
+            font_size: "29sp"
+            size_hint_y: 0.2
+        MDBoxLayout:
+            orientation: "vertical"
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            size_hint: 0.5, 0.5
+            padding: "50dp"  # Spazio tra l'insieme Username e l'insieme Password
+            
+            AnchorLayout:
+                pos_hint: {'center_x': 0.5, 'center_y': 0.1}
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    size_hint_y: 0.5
+                    height: self.minimum_height
+
+                    MDLabel:
+                        text: "Username"
+                        halign: "left"
+                        size_hint_y: None
+                        height: self.texture_size[1]  # Altezza minima in base al testo
+                    MDTextField:
+                        id: username
+                        hint_text: "Inserisci il tuo username"
+                        text_color_hint: 0, 0, 0, 1
+                        md_bg_color: 1, 1, 1, 1
+                        mode: "outlined"
+
+            AnchorLayout:
+                pos_hint: {'center_x': 0.5, 'center_y': 0.9}
+                
+                MDBoxLayout:
+                    orientation: "vertical"
+                    size_hint_y: 0.5
+                    height: self.minimum_height
+                    MDLabel:
+                        text: "Password"
+                        halign: "left"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                    MDTextField:
+                        id: password
+                        hint_text: "Inserisci la tua password"
+                        text_color_hint: 0, 0, 0, 1
+                        md_bg_color: 1, 1, 1, 1
+                        mode: "outlined"
+                        password: True
+        ClickableBox:
+            text: "Log In"
+            md_bg_color: 0, 0, 1, 1
+            size_hint_x: 0.3
+            size_hint_y: 0.3
+            pos_hint: {'center_x': 0.5}
+            on_release:
+                app.login(username.text, password.text)
+
+<OptionScreen>:
+    name: "option"
+    MDBoxLayout:
+        orientation: "vertical"
+        padding: "30dp"
+        spacing: "20dp"
+        md_bg_color: 1, 1, 1, 1
+        MDLabel:
+            text: "Select an Option:"
+            md_bg_color: 1, 1, 1, 1
+            halign: "center"
+            font_size: "24sp"
+        MDBoxLayout:
+            orientation: "horizontal"
+            spacing: "10dp"
+            size_hint_y: None
+            height: "60dp"
+            ClickableBox:
+                text: "Cash Mode"
+                md_bg_color: 0, 1, 0, 1
+                on_release:
+                    root.manager.current = "menu"
+            ClickableBox:
+                text: "Create Category"
+                md_bg_color: 1, 0.5, 0, 1
+                on_release:
+                    root.manager.current = "create_category"
+        ClickableBox:
+            text: "Log Out"
+            md_bg_color: 1, 0, 0, 1
+            on_release:
+                root.manager.current = "login"
+# ----------------------------------------------------
+# Schermo per creare/modificare categorie
+# ----------------------------------------------------
+<CreateCategoryScreen>:
+    name: "create_category"
+    on_enter: app.load_category_chips()
+    MDBoxLayout:
+        orientation: "horizontal"
+        padding: "20dp"
+        spacing: "10dp"
+        md_bg_color: 1, 1, 1, 1
+
+        MDBoxLayout:
+            orientation: "vertical"
+            padding: "50dp"
+            spacing: "50dp"
+            size_hint_x: 0.7
+            md_bg_color: 1, 1, 1, 1
+
+            MDLabel:
+                text: "Crea o modifica una Categoria Prodotto"
+                color: 0, 0, 0, 1
+                halign: "left"
+                font_size: "24sp"
+
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: 0.3
+                height: self.minimum_height
+                padding: "-10dp"
+                MDLabel:
+                    text: "Nome Categoria (nuova)"
+                    halign: "left"
+                    size_hint_y: None
+                    height: self.texture_size[1]  # Altezza minima in base al testo
+                MDTextField:
+                    id: new_category_name
+                    hint_text: "Nome nuova categoria"
+                    color: 1, 1, 1, 1
+                    mode: "outlined"
+
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: 0.3
+                height: self.minimum_height
+                padding: "-10dp"
+                MDLabel:
+                    text: "Posizione nella griglia (1-20)"
+                    halign: "left"
+                    size_hint_y: None
+                    height: self.texture_size[1]  # Altezza minima in base al testo
+                MDTextField:
+                    id: grid_slot
+                    hint_text: "Posizione nella griglia (1-20)"
+                    color: 1, 1, 1, 1
+                    mode: "outlined"
+                    input_filter: "int"  # Accetta solo numeri
+
+            MDLabel:
+                text: "Aggiungi prodotti a una categoria esistente:"
+                color: 0, 0, 0, 1
+                halign: "left"
+                font_size: "20sp"
+
+            ScrollView:
+                size_hint_y: 0.3
+                MDBoxLayout:
+                    id: category_chip_box
+                    orientation: "horizontal"
+                    spacing: "10dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+
+
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: 0.3
+                height: self.minimum_height
+                MDLabel:
+                    text: "Nome prodotto"
+                    halign: "left"
+                    size_hint_y: None
+                    height: self.texture_size[1]  # Altezza minima in base al testo
+                MDTextField:
+                    id: product_name
+                    hint_text: "Nome prodotto"
+                    color: 1, 1, 1, 1
+                    mode: "outlined"
+
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: 0.5
+                height: self.minimum_height
+                MDLabel:
+                    text: "Prezzo prodotto"
+                    halign: "left"
+                    size_hint_y: None
+                    height: self.texture_size[1]  # Altezza minima in base al testo
+                MDTextField:
+                    id: product_price
+                    hint_text: "Prezzo prodotto"
+                    color: 1, 1, 1, 1
+                    mode: "outlined"
+                    input_filter: "float"  # Accetta numeri decimali
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: 1
+                size_hint_x: 0.4
+                padding: "-5dp"
+                height: self.minimum_height
+                ClickableBox:
+                    text: "Aggiungi Prodotto alla Categoria Selezionata"
+                    md_bg_color: 0, 0.5, 1, 1
+                    on_release:
+                        app.add_product_to_category(product_name.text, product_price.text)
+
+                ClickableBox:
+                    text: "Salva Nuova Categoria"
+                    md_bg_color: 0, 0.5, 1, 1
+                    on_release:
+                        app.save_category(new_category_name.text, grid_slot.text)
+
+                ClickableBox:
+                    text: "Torna alle Opzioni"
+                    md_bg_color: 0.7, 0.7, 0.7, 1
+                    on_release:
+                        root.manager.current = "option"
+
+        # SEPARATORE VERTICALE
+        MDDivider:
+            orientation: "vertical"
+            size_hint_x: None
+            width: "1dp"
+            md_bg_color: 0, 0, 0, 1
+
+        # PARTE DESTRA (30%) - Visualizza i prodotti della categoria selezionata
+        MDBoxLayout:
+            orientation: "vertical"
+            size_hint_x: 0.3
+            spacing: "10dp"
+            md_bg_color: 0.95, 0.95, 0.95, 1
+
+            MDBoxLayout:
+                orientation: "vertical"
+                height: self.minimum_height
+                MDLabel:
+                    text: "Prezzo prodotto"
+                    halign: "left"
+                    size_hint_y: None
+                    height: self.texture_size[1]  # Altezza minima in base al testo
+                    padding: "20dp"
+                    padding_x: "20dp"
+                ScrollView:
+                    do_scroll_y: True
+                    do_scroll_x: False
+                    MDGridLayout:
+                        id: product_list_box
+                        cols: 2
+                        spacing: "40dp"
+                        padding: "20dp"
+                        adaptive_height: True
+
+
+# ----------------------------------------------------
+# Schermo Menu (modalità cassa)
+# ----------------------------------------------------
+
+<MenuScreen>:
+    name: "menu"
+    on_enter: app.load_categories()
+    on_enter: app.update_order_summary()
+
+    MDBoxLayout:
+        md_bg_color: [1, 1, 0.1, 1]  # Sfondo giallo
+        orientation: "horizontal"
+        padding: "30dp"
+        spacing: "5dp"
+
+        AnchorLayout:
+            anchor_x: "left"
+            anchor_y: "top"
+            size_hint_x: 0.60 
+            MDGridLayout:
+                cols: 3
+                rows: 2
+                size_hint_y: 0.3
+                size_hint_x: 1 
+                height: "250dp"
+                spacing: "5dp"
+                padding: "5dp"
+                canvas.before:
+                    Color:
+                        rgba: 0, 0, 0, 1
+                    Line:
+                        width: 1
+                        rectangle: self.x, self.y, self.width, self.height
+
+                # RIGA SUPERIORE: Informazioni
+                MDLabel:
+                    id: customer_label
+                    text: app.customer_name_text
+                    halign: "center"
+                    text_color: "black"
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Line:
+                            width: 1
+                            rectangle: self.x, self.y, self.width, self.height
+                MDLabel:
+                    id: time_label
+                    text: app.delivery_time_text
+                    halign: "center"
+                    text_color: "black"
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Line:
+                            width: 1
+                            rectangle: self.x, self.y, self.width, self.height
+                MDLabel:
+                    id: articles_label
+                    text: app.articles_text
+                    halign: "center"
+                    text_color: "black"
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Line:
+                            width: 1
+                            rectangle: self.x, self.y, self.width, self.height
+
+                # RIGA INFERIORE: Celle 1 e 2 vuote, cella 3 con i bottoni
+                MDLabel:
+                    text: ""
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Line:
+                            width: 1
+                            rectangle: self.x, self.y, self.width, self.height
+                MDLabel:
+                    text: ""
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Line:
+                            width: 1
+                            rectangle: self.x, self.y, self.width, self.height                    
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: "5dp"
+                    halign: "center"
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Line:
+                            width: 1
+                            rectangle: self.x, self.y, self.width, self.height    
+                                                                
+                    ClickableBox:
+                        text: "Chiudi"
+                        halign: "center"
+                        md_bg_color: 1, 0, 0, 1
+                        text_color: "black"
+                        on_release: root.manager.current = "login"  # Definisci questa funzione nel tuo file Python
+                    ClickableBox:
+                        text: "Exit FullScreen"
+                        halign: "center"
+                        md_bg_color: 0, 0, 1, 1
+                        text_color: "black"
+                        on_release: app.toggle_fullscreen()  # Definisci questa funzione nel tuo file Python
+
+            # Sezione 2: Area di selezione prodotti (in basso)
+            AnchorLayout:
+                anchor_x: "left"
+                anchor_y: "bottom"            
+                MDBoxLayout:
+                    orientation: "vertical"
+                    spacing: "5dp"
+                    size_hint_x: 1  # Occupa il 90% della larghezza del genitore
+                    size_hint_y: 0.7  # Occupa il 100% della altezza del genitore
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Line:
+                            width: 1
+                            rectangle: self.x, self.y, self.width, self.height                     
+
+                    # Parte alta: Griglia prodotti (4 righe x 5 colonne) + colonna verticale di 4 bottoni
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        spacing: "5dp"
+                        size_hint_y: 1
+                        canvas.before:
+                            Color:
+                                rgba: 0, 0, 0, 1
+                            Line:
+                                width: 1
+                                rectangle: self.x, self.y, self.width, self.height     
+
+                        MDGridLayout:
+                            id: top_product_grid
+                            cols: 5
+                            rows: 4
+                            size_hint_y: 1
+                            spacing: "5dp"
+                            padding: "5dp"
+                            canvas.before:
+                                Color:
+                                    rgba: 0, 0, 0, 1
+                                Line:
+                                    width: 1
+                                    rectangle: self.x, self.y, self.width, self.height                                 
+
+    
+                        MDBoxLayout:
+                            orientation: "vertical"
+                            size_hint_x: None
+                            width: "150dp"
+                            spacing: "5dp"
+                            padding: "5dp"
+                            ClickableBox:
+                                text: "Placeholder"                            
+                            ClickableBox:
+                                text: "Placeholder"                            
+                            ClickableBox:
+                                text: "Placeholder"                            
+                            ClickableBox:
+                                text: "Placeholder"                            
+
+                    # Parte bassa: Griglia prodotti (2 righe x 5 colonne)
+                    MDGridLayout:
+                        id: bottom_product_grid
+                        cols: 5
+                        rows: 2
+                        size_hint_y: 0.4
+                        spacing: "5dp"
+                        padding: "5dp"
+                        canvas.before:
+                            Color:
+                                rgba: 0, 0, 0, 1
+                            Line:
+                                width: 1
+                                rectangle: self.x, self.y, self.width, self.height                         
+                        ClickableBox:
+                            text: "Placeholder"                            
+                        ClickableBox:
+                            text: "Placeholder"                        
+                        ClickableBox:
+                            text: "Placeholder"                        
+                        ClickableBox:
+                            text: "Placeholder"                        
+                        ClickableBox:
+                            text: "Placeholder"                        
+                        ClickableBox:
+                            text: "Placeholder"                        
+                        ClickableBox:
+                            text: "Placeholder"                        
+                        ClickableBox:
+                            text: "Placeholder"                        
+                        ClickableBox:
+                            text: "Placeholder"                        
+                        ClickableBox:
+                            text: "Placeholder"                        
+
+        # SEZIONE DESTRA: Riepilogo ordine e tastierino numerico
+        MDHeroFrom:
+            id: order_summary_hero
+            tag: "order_summary"
+            # Non usare size_hint se vuoi che si adatti,
+            # ma di solito devi specificare dimensioni fisse o un layout coerente
+            size_hint: 0.3, 1
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_x: 0.3
+                size_hint_y: 1
+                spacing: "5dp"
+                padding: "5dp"
+                canvas.before:
+                    Color:
+                        rgba: 0, 0, 0, 1
+                    Line:
+                        width: 1
+                        rectangle: self.x, self.y, self.width, self.height    
+    
+    
+                ScrollView:
+                    MDList:
+                        id: order_list
+                        spacing: "5dp"
+                        padding: "5dp"
+                        canvas.before:
+                            Color:
+                                rgba: 0, 0, 0, 1
+                            Line:
+                                width: 1
+                                rectangle: self.x, self.y, self.width, self.height    
+    
+                MDLabel:
+                    id: total_label
+                    text: "Totale: 0.00€"
+                    halign: "center"
+                    text_color: "black"
+                    size_hint_y: 0.40
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Line:
+                            width: 1
+                            rectangle: self.x, self.y, self.width, self.height                    
+    
+                MDGridLayout:
+                    cols: 4
+                    spacing: "5dp"
+                    height: "160dp"
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Line:
+                            width: 1
+                            rectangle: self.x, self.y, self.width, self.height                    
+    
+                    ClickableBox:
+                        text: "7"
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                        on_release: app.num_press("7")
+                    ClickableBox:
+                        text: "8"
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                        on_release: app.num_press("8")
+                    ClickableBox:
+                        text: "9"
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                        on_release: app.num_press("9")
+                    ClickableBox:
+                        text: "C"
+                        md_bg_color: 1, 0, 0, 1
+                        text_color: "white"
+                        on_release: app.num_press("C")                    
+                    ClickableBox:
+                        text: "4"
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                        on_release: app.num_press("4")
+                    ClickableBox:
+                        text: "5"
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                        on_release: app.num_press("5")
+                    ClickableBox:
+                        text: "6"
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                        on_release: app.num_press("6")
+                    ClickableBox:
+                        text: "X"
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                        on_release: app.num_press("X")                    
+                    ClickableBox:
+                        text: "1"
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                        on_release: app.num_press("1")
+                    ClickableBox:
+                        text: "2"
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                        on_release: app.num_press("2")
+                    ClickableBox:
+                        text: "3"
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                        on_release: app.num_press("3")
+                    ClickableBox:
+                        text: "Cerca Cliente"
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                        on_release: app.num_press("Cerca Cliente")                    
+                    ClickableBox:
+                        text: "0"
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                        on_release: app.num_press("0")
+                    ClickableBox:
+                        text: "00"
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                    ClickableBox:
+                        text: ","
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                    ClickableBox:
+                        text: "Variazioni"
+                        md_bg_color: 0, 0, 0, 1
+                        text_color: "white"
+                        on_release: app.num_press("Variazioni")                    
+    
+                    
+<SearchProductScreen>:
+    name: "search_product"
+    on_enter: app.update_order_summary()
+
+    MDBoxLayout:
+        orientation: "horizontal"
+        spacing: "5dp"
+        padding: "10dp"
+        md_bg_color: 1, 1, 1, 1
+
+        # ---------------------------------------
+        # SEZIONE SINISTRA (griglia prodotti)
+        # ---------------------------------------
+        MDBoxLayout:
+            orientation: "vertical"
+            size_hint_x: 0.5
+            spacing: "10dp"
+            md_bg_color: [1, 1, 0.95, 1]  # Sfondo chiaro
+            canvas.before:
+                Color:
+                    rgba: 0, 0, 0, 1
+                Line:
+                    width: 1
+                    rectangle: self.x, self.y, self.width, self.height              
+
+            MDLabel:
+                id: category_label
+                text: "Categoria: " + app.current_category
+                halign: "center"
+                font_size: "24sp"
+                size_hint_y: None
+                padding: "40dp"
+                height: self.texture_size[1]  # Altezza minima in base al testo
+                color: 0, 0, 0, 1
+                canvas.before:
+                    Color:
+                        rgba: 0, 0, 0, 1
+                    Line:
+                        width: 1
+                        rectangle: self.x, self.y, self.width, self.height                    
+
+            ScrollView:
+                do_scroll_y: True
+                do_scroll_x: False
+                size_hint_y: 1
+                MDGridLayout:
+                    id: product_grid_search
+                    cols: 4
+                    spacing: "10dp"
+                    padding: "20dp"
+                    size_hint_y: None  
+                    height: self.minimum_height
+                    
+        # -----------------------------
+        # Sezione Centrale: Tastiera per il Filtro
+        # -----------------------------
+        MDBoxLayout:
+            orientation: "vertical"
+            size_hint_x: 0.2
+            spacing: "10dp"
+            md_bg_color: [0.9, 0.9, 0.9, 1]
+
+            MDLabel:
+                text: "Filtra Prodotti"
+                halign: "center"
+                font_size: "20sp"
+                padding: "40dp"
+                size_hint_y: None
+                height: self.texture_size[1]  # Altezza minima in base al testo
+                color: 0, 0, 0, 1
+
+            # ClickableBox "Tutti" per resettare il filtro
+            ClickableBox:
+                text: "Tutti"
+                md_bg_color: 0.7, 0.7, 0.7, 1
+                size_hint: 1, None
+                height: "40dp"
+                on_release: app.filter_products("")
+
+            # Griglia della tastiera con tutte le lettere A-Z
+            MDGridLayout:
+                id: keyboard_grid
+                cols: 4
+                spacing: "5dp"
+                # Creiamo manualmente i pulsanti per le 26 lettere
+                ClickableBox:
+                    text: "A"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("A")
+                ClickableBox:
+                    text: "B"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("B")
+                ClickableBox:
+                    text: "C"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("C")
+                ClickableBox:
+                    text: "D"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("D")
+                ClickableBox:
+                    text: "E"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("E")
+                ClickableBox:
+                    text: "F"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("F")
+                ClickableBox:
+                    text: "G"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("G")
+                ClickableBox:
+                    text: "H"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("H")
+                ClickableBox:
+                    text: "I"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("I")
+                ClickableBox:
+                    text: "J"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("J")
+                ClickableBox:
+                    text: "K"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("K")
+                ClickableBox:
+                    text: "L"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("L")
+                ClickableBox:
+                    text: "M"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("M")
+                ClickableBox:
+                    text: "N"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("N")
+                ClickableBox:
+                    text: "O"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("O")
+                ClickableBox:
+                    text: "P"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("P")
+                ClickableBox:
+                    text: "Q"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("Q")
+                ClickableBox:
+                    text: "R"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("R")
+                ClickableBox:
+                    text: "S"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("S")
+                ClickableBox:
+                    text: "T"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("T")
+                ClickableBox:
+                    text: "U"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("U")
+                ClickableBox:
+                    text: "V"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("V")
+                ClickableBox:
+                    text: "W"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("W")
+                ClickableBox:
+                    text: "X"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("X")
+                ClickableBox:
+                    text: "Y"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("Y")
+                ClickableBox:
+                    text: "Z"
+                    size_hint: 1, None
+                    height: "80dp"
+                    on_release: app.filter_products("Z")
+
+        # -----------------------------
+        # Sezione Destra: Riepilogo Ordine (Hero)
+        # -----------------------------
+        MDHeroTo:
+            id: order_summary_hero_to
+            tag: "order_summary"
+            size_hint_x: 0.3
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: "5dp"
+                padding: "10dp"
+                canvas.before:
+                    Color:
+                        rgba: 0, 0, 0, 1
+                    Line:
+                        width: 1
+                        rectangle: self.x, self.y, self.width, self.height    
+
+                MDLabel:
+                    text: "Riepilogo Ordine"
+                    halign: "center"
+                    font_size: "20sp"
+                    color: 0, 0, 0, 1
+
+                ScrollView:
+                    MDList:
+                        id: order_list
+                        spacing: "5dp"
+                        padding: "5dp"
+
+                MDLabel:
+                    id: total_label
+                    text: "Totale: 0.00€"
+                    halign: "center"
+                    font_size: "18sp"
+                    color: 0, 0, 0, 1
+
+                MDButton:
+                    text: "Conferma Ordine"
+                    md_bg_color: 0, 0.5, 0, 1
+                    on_release: app.confirm_order()
+                MDButton:
+                    text: "Torna al Menu"
+                    md_bg_color: 1, 0, 0, 1
+                    on_release:
+                        root.manager.current = "menu"
+
+
+<OrderScreen>:
+    name: "orders"   
+    MDBoxLayout:
+        orientation: "vertical"
+        padding: "10dp"
+        md_bg_color: 0, 0, 1, 0.2
+
+        MDLabel:
+            text: "Ordini in attesa"
+            halign: "center"
+            text_style: "TitleMedium"
+            text_color: "black"
+
+        ScrollView:
+            size_hint_y: 0.7
+            MDBoxLayout:
+                id: order_list_container
+                orientation: "vertical"
+                size_hint_y: None
+                height: self.minimum_height
+                md_bg_color: 1, 0, 0, 0.3
+
+                MDList:
+                    id: order_list
+
+        MDGridLayout:
+            cols: 2
+            size_hint_y: 0.3
+            spacing: "5dp"
+
+            MDButton:
+                text: "Richiama Asporto"
+                style: "elevated"
+                on_release: app.load_orders("Asporto")
+                text_color: "black"
+            MDButton:
+                text: "Richiama Domicilio"
+                style: "elevated"
+                on_release: app.load_orders("Domicilio")
+                text_color: "black"
+
+<TimeSelectionScreen>:
+    name: "time_selection"
+    md_bg_color: [1, 1, 1, 1]
+    MDBoxLayout:
+        orientation: "vertical"
+        padding: "10dp"
+
+        MDLabel:
+            text: "Seleziona un orario di consegna"
+            halign: "center"
+            text_style: "TitleMedium"
+            text_color: "black"
+
+        MDGridLayout:
+            cols: 4
+            spacing: "5dp"
+
+            MDButton:
+                text: "19:00"
+                style: "elevated"
+                on_release: app.set_delivery_time("19:00")
+                text_color: "black"
+            MDButton:
+                text: "19:15"
+                style: "elevated"
+                on_release: app.set_delivery_time("19:15")
+                text_color: "black"
+            MDButton:
+                text: "19:30"
+                style: "elevated"
+                on_release: app.set_delivery_time("19:30")
+                text_color: "black"
+            MDButton:
+                text: "19:45"
+                style: "elevated"
+                on_release: app.set_delivery_time("19:45")
+                text_color: "black"
