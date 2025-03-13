@@ -5,7 +5,7 @@ from kivy.uix.boxlayout import BoxLayout
 
 class MDLive(App, MDApp):
     CLASSES = {
-        "POSPizzeriaApp": "pos-env.pos"
+        "POSPizzeriaApp": "pos_env.pos"
     }
 
 
