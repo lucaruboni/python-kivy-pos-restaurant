@@ -1,6 +1,7 @@
 from kivy.config import Config
 Config.set('graphics', 'fullscreen', '0')
 
+from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.properties import NumericProperty, StringProperty
 from kivy.core.window import Window
@@ -11,7 +12,6 @@ from kivymd.uix.button import MDButton
 from kivy.clock import Clock
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.boxlayout import BoxLayout
-from database import Database
 from kivy.uix.popup import Popup
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.list import MDListItem
@@ -71,7 +71,7 @@ class OrderScreen(Screen):
 class TimeSelectionScreen(Screen):
     pass
 
-class POSPizzeriaApp(MDApp):
+class POSPizzeriaApp(ScreenManager):
     # Definiamo le proprietà come Kivy Properties in modo che siano osservabili dal KV
     num_articles = NumericProperty(0)
     delivery_time_text = StringProperty("Ora")
@@ -80,16 +80,17 @@ class POSPizzeriaApp(MDApp):
     selected_category = StringProperty("")
     current_category = StringProperty("")  
     order_items = ListProperty([])  # Questa lista conterrà gli articoli dell'ordine
+    db = MDApp.get_running_app().db
 
 
-
-    
     def verify_credentials(self, username, password):
         """Verifica le credenziali confrontando il valore hash della password.
            Supponiamo di avere un database SQLite 'users.db' con una tabella 'users'
            contenente le colonne 'username' e 'password' (il campo password contiene l'hash SHA-256)."""
         try:
-            conn = sqlite3.connect("pos_pizzeria.db")
+            BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+            db_path = os.path.join(BASE_DIR, "pos_pizzeria.db")
+            conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             cursor.execute("SELECT password FROM users WHERE username = ?", (username,))
             row = cursor.fetchone()
@@ -107,7 +108,7 @@ class POSPizzeriaApp(MDApp):
         if self.verify_credentials(username, password):
             print("Login successful!")
             # Dopo il login, passa allo screen delle opzioni
-            self.root.current = "option"
+            self.current = "option"
         else:
             print("Invalid credentials!")
             self.show_error_popup("Username or password incorrect.")
@@ -186,18 +187,18 @@ class POSPizzeriaApp(MDApp):
 
     def go_to_search_screen_with_hero(self, category_name):
         self.current_category = category_name
-        self.root.current_heroes = ["order_summary"]
-        self.root.current = "search_product"  # Assicurati che il nome dello screen sia corretto
+        self.current_heroes = ["order_summary"]
+        self.current = "search_product"  # Assicurati che il nome dello screen sia corretto
         self.load_products(category_name)
 
     def load_categories(self):
         # Recupera lo screen "menu" e la griglia
-        menu_screen = self.root.get_screen("menu")
+        menu_screen = self.get_screen("menu")
         grid = menu_screen.ids.top_product_grid
         grid.clear_widgets()  # Pulisce la griglia
 
-        # Recupera le categorie dal database
-        categories = self.db.fetch_categories()  # Supponiamo che restituisca tuple (id, name, grid_slot)
+        db = MDApp.get_running_app().db
+        categories = db.fetch_categories()
 
         # Ordina le categorie per grid_slot (se grid_slot è None, lo mettiamo in fondo)
         sorted_categories = sorted(categories, key=lambda x: x[2] if x[2] is not None else 999)
@@ -210,10 +211,11 @@ class POSPizzeriaApp(MDApp):
             grid.add_widget(box)
 
     def load_category_chips(self):
-        screen = self.root.get_screen("create_category")
+        screen = self.get_screen("create_category")
         chip_box = screen.ids.category_chip_box
         chip_box.clear_widgets()
-        categories = self.db.fetch_categories()  # Supponiamo che ritorni tuple (id, name, grid_slot)
+        db = MDApp.get_running_app().db
+        categories = db.fetch_categories()  # Supponiamo che ritorni tuple (id, name, grid_slot)
         # Ordina per grid_slot (se None, lo posizioniamo alla fine)
         sorted_categories = sorted(categories, key=lambda x: x[2] if x[2] is not None else 999)
         for cat in sorted_categories:
@@ -222,7 +224,7 @@ class POSPizzeriaApp(MDApp):
             chip_box.add_widget(chip)
 
     def select_chip(self, selected_chip, cat_name):
-        screen = self.root.get_screen("create_category")
+        screen = self.get_screen("create_category")
         chip_box = screen.ids.category_chip_box
         # Imposta tutti i chip come non attivi
         for chip in chip_box.children:
@@ -234,13 +236,14 @@ class POSPizzeriaApp(MDApp):
         self.load_products_for_category(cat_name)
 
     def load_products_for_category(self, cat_name):
-        screen = self.root.get_screen("create_category")
+        screen = self.get_screen("create_category")
         product_box = screen.ids.product_list_box
         product_box.clear_widgets()
-        cat_id = self.db.get_category_id(cat_name)
+        db = MDApp.get_running_app().db
+        cat_id = db.get_category_id(cat_name)
         if not cat_id:
             return
-        products = self.db.fetch_category_products(cat_id)
+        products = db.fetch_category_products(cat_id)
         if not products:
             from kivy.uix.label import Label
             product_box.add_widget(Label(text="Nessun prodotto", color=(0,0,0,1)))
@@ -256,7 +259,8 @@ class POSPizzeriaApp(MDApp):
 
 
     def show_category_products(self, cat_id):
-        products = self.db.fetch_category_products(cat_id)  # Assicurati di avere questo metodo nel tuo database
+        db = MDApp.get_running_app().db
+        products = db.fetch_category_products(cat_id)  # Assicurati di avere questo metodo nel tuo database
         if not products:
             content_text = "Nessun prodotto per questa categoria."
         else:
@@ -274,17 +278,18 @@ class POSPizzeriaApp(MDApp):
         # Salva la categoria corrente in un attributo dell'app
         self.current_category = category_name
         # Passa allo screen "search_product"
-        self.root.current = "search_product"
+        self.current = "search_product"
         # Carica i prodotti di questa categoria
         self.load_products(category_name)
 
     def load_products(self, category_name):
-        screen = self.root.get_screen("search_product")
+        screen = self.get_screen("search_product")
         product_grid = screen.ids.product_grid_search
         product_grid.clear_widgets()
 
         # Recupera i prodotti della categoria dalla tabella category_products
-        products = self.db.fetch_products_by_category(category_name)
+        db = MDApp.get_running_app().db
+        products = db.fetch_products_by_category(category_name)
         if not products:
             from kivy.uix.label import Label
             product_grid.add_widget(Label(text="Nessun prodotto trovato", color=(0,0,0,1)))
@@ -305,15 +310,16 @@ class POSPizzeriaApp(MDApp):
     def filter_products(self, letter):
         # Recupera i prodotti della categoria corrente
         # e filtra quelli che iniziano per lettera
-        screen = self.root.get_screen("search_product")
+        screen = self.get_screen("search_product")
         product_grid = screen.ids.product_grid_search
         product_grid.clear_widgets()
 
         if letter == "":
             # Mostra tutti i prodotti
-            products = self.db.fetch_products_by_category(self.current_category)
+            db = MDApp.get_running_app().db
+            products = db.fetch_products_by_category(self.current_category)
         else:
-            products = self.db.fetch_products_by_first_letter(self.current_category, letter)
+            products = db.fetch_products_by_first_letter(self.current_category, letter)
 
         for prod in products:
             item_box = ClickableBoxSearch(text=f"{prod[2]}\n{prod[3]:.2f}€")
@@ -322,7 +328,7 @@ class POSPizzeriaApp(MDApp):
 
     def add_to_order(self, product):
         # product è una tupla (id, nome, prezzo, ...)
-        screen = self.root.get_screen("search_product")
+        screen = self.get_screen("search_product")
         order_list = screen.ids.order_list
         # Aggiungi un item alla lista
         from kivymd.uix.list import MDListItem
@@ -332,8 +338,8 @@ class POSPizzeriaApp(MDApp):
 
     def go_to_search_product_screen(self):
         # Diciamo che il tag del hero e' "order_summary"
-        self.root.current_heroes = ["order_summary"]
-        self.root.current = "search_product"
+        self.current_heroes = ["order_summary"]
+        self.current = "search_product"
 
     def add_to_order(self, product):
         """
@@ -353,11 +359,11 @@ class POSPizzeriaApp(MDApp):
         # e che l'id della MDList sia "order_list"
         try:
             # Prova ad ottenere lo screen corrente; se vuoi usare uno screen specifico, ad esempio "menu":
-            screen = self.root.get_screen("menu")
+            screen = self.get_screen("menu")
             order_list = screen.ids.order_list
         except Exception:
             # Se lo screen "menu" non è disponibile, prova un altro (es. "search_product")
-            screen = self.root.get_screen("search_product")
+            screen = self.get_screen("search_product")
             order_list = screen.ids.order_list
 
         order_list.clear_widgets()

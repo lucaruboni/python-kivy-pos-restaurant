@@ -1,7 +1,6 @@
 #:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
 #:import MDTextField kivymd.uix.textfield.MDTextField
 #:import MDGridLayout kivymd.uix.gridlayout.MDGridLayout
-#:import OneLineListItem main.OneLineListItem
 #:import MDList kivymd.uix.list.MDList
 #:import MDButton kivymd.uix.button.MDButton
 #:import MDScreen kivymd.uix.screen.MDScreen
@@ -11,6 +10,7 @@
 #:import MDHeroTo kivymd.uix.hero.MDHeroTo
 
 <POSPizzeriaApp@ScreenManager>:
+    current: "login"  # Imposta lo screen iniziale
     LoginScreen:
     OptionScreen:
     CreateCategoryScreen:
@@ -83,13 +83,6 @@
         padding: "5dp", "5dp"
         color: 0, 0, 0, 1
 
-
-<OneLineListItem>:
-    theme_text_color: "Custom"
-    text_color: 0, 0, 0, 1       
-
-        
-
 # ----------------------------------------------------
 # Schermo di Login
 # ----------------------------------------------------
@@ -159,7 +152,7 @@
             size_hint_y: 0.3
             pos_hint: {'center_x': 0.5}
             on_release:
-                app.login(username.text, password.text)
+                root.manager.login(username.text, password.text)
 
 <OptionScreen>:
     name: "option"
@@ -198,7 +191,7 @@
 # ----------------------------------------------------
 <CreateCategoryScreen>:
     name: "create_category"
-    on_enter: app.load_category_chips()
+    on_enter: root.manager.load_category_chips()
     MDBoxLayout:
         orientation: "horizontal"
         padding: "20dp"
@@ -307,13 +300,13 @@
                     text: "Aggiungi Prodotto alla Categoria Selezionata"
                     md_bg_color: 0, 0.5, 1, 1
                     on_release:
-                        app.add_product_to_category(product_name.text, product_price.text)
+                        root.manager.add_product_to_category(product_name.text, product_price.text)
 
                 ClickableBox:
                     text: "Salva Nuova Categoria"
                     md_bg_color: 0, 0.5, 1, 1
                     on_release:
-                        app.save_category(new_category_name.text, grid_slot.text)
+                        root.manager.save_category(new_category_name.text, grid_slot.text)
 
                 ClickableBox:
                     text: "Torna alle Opzioni"
@@ -362,8 +355,8 @@
 
 <MenuScreen>:
     name: "menu"
-    on_enter: app.load_categories()
-    on_enter: app.update_order_summary()
+    on_enter: root.manager.load_categories()
+    on_enter: root.manager.update_order_summary()
 
     MDBoxLayout:
         md_bg_color: [1, 1, 0.1, 1]  # Sfondo giallo
@@ -393,7 +386,7 @@
                 # RIGA SUPERIORE: Informazioni
                 MDLabel:
                     id: customer_label
-                    text: app.customer_name_text
+                    text: root.manager.customer_name_text
                     halign: "center"
                     text_color: "black"
                     canvas.before:
@@ -404,7 +397,7 @@
                             rectangle: self.x, self.y, self.width, self.height
                 MDLabel:
                     id: time_label
-                    text: app.delivery_time_text
+                    text: root.manager.delivery_time_text
                     halign: "center"
                     text_color: "black"
                     canvas.before:
@@ -415,7 +408,7 @@
                             rectangle: self.x, self.y, self.width, self.height
                 MDLabel:
                     id: articles_label
-                    text: app.articles_text
+                    text: root.manager.articles_text
                     halign: "center"
                     text_color: "black"
                     canvas.before:
@@ -464,7 +457,7 @@
                         halign: "center"
                         md_bg_color: 0, 0, 1, 1
                         text_color: "black"
-                        on_release: app.toggle_fullscreen()  # Definisci questa funzione nel tuo file Python
+                        on_release: root.manager.toggle_fullscreen()  # Definisci questa funzione nel tuo file Python
 
             # Sezione 2: Area di selezione prodotti (in basso)
             AnchorLayout:
@@ -620,67 +613,67 @@
                         text: "7"
                         md_bg_color: 0, 0, 0, 1
                         text_color: "white"
-                        on_release: app.num_press("7")
+                        on_release: root.manager.num_press("7")
                     ClickableBox:
                         text: "8"
                         md_bg_color: 0, 0, 0, 1
                         text_color: "white"
-                        on_release: app.num_press("8")
+                        on_release: root.manager.num_press("8")
                     ClickableBox:
                         text: "9"
                         md_bg_color: 0, 0, 0, 1
                         text_color: "white"
-                        on_release: app.num_press("9")
+                        on_release: root.manager.num_press("9")
                     ClickableBox:
                         text: "C"
                         md_bg_color: 1, 0, 0, 1
                         text_color: "white"
-                        on_release: app.num_press("C")                    
+                        on_release: root.manager.num_press("C")                    
                     ClickableBox:
                         text: "4"
                         md_bg_color: 0, 0, 0, 1
                         text_color: "white"
-                        on_release: app.num_press("4")
+                        on_release: root.manager.num_press("4")
                     ClickableBox:
                         text: "5"
                         md_bg_color: 0, 0, 0, 1
                         text_color: "white"
-                        on_release: app.num_press("5")
+                        on_release: root.manager.num_press("5")
                     ClickableBox:
                         text: "6"
                         md_bg_color: 0, 0, 0, 1
                         text_color: "white"
-                        on_release: app.num_press("6")
+                        on_release: root.manager.num_press("6")
                     ClickableBox:
                         text: "X"
                         md_bg_color: 0, 0, 0, 1
                         text_color: "white"
-                        on_release: app.num_press("X")                    
+                        on_release: root.manager.num_press("X")                    
                     ClickableBox:
                         text: "1"
                         md_bg_color: 0, 0, 0, 1
                         text_color: "white"
-                        on_release: app.num_press("1")
+                        on_release: root.manager.num_press("1")
                     ClickableBox:
                         text: "2"
                         md_bg_color: 0, 0, 0, 1
                         text_color: "white"
-                        on_release: app.num_press("2")
+                        on_release: root.manager.num_press("2")
                     ClickableBox:
                         text: "3"
                         md_bg_color: 0, 0, 0, 1
                         text_color: "white"
-                        on_release: app.num_press("3")
+                        on_release: root.manager.num_press("3")
                     ClickableBox:
                         text: "Cerca Cliente"
                         md_bg_color: 0, 0, 0, 1
                         text_color: "white"
-                        on_release: app.num_press("Cerca Cliente")                    
+                        on_release: root.manager.num_press("Cerca Cliente")                    
                     ClickableBox:
                         text: "0"
                         md_bg_color: 0, 0, 0, 1
                         text_color: "white"
-                        on_release: app.num_press("0")
+                        on_release: root.manager.num_press("0")
                     ClickableBox:
                         text: "00"
                         md_bg_color: 0, 0, 0, 1
@@ -693,12 +686,12 @@
                         text: "Variazioni"
                         md_bg_color: 0, 0, 0, 1
                         text_color: "white"
-                        on_release: app.num_press("Variazioni")                    
+                        on_release: root.manager.num_press("Variazioni")                    
     
                     
 <SearchProductScreen>:
     name: "search_product"
-    on_enter: app.update_order_summary()
+    on_enter: root.manager.update_order_summary()
 
     MDBoxLayout:
         orientation: "horizontal"
@@ -723,7 +716,7 @@
 
             MDLabel:
                 id: category_label
-                text: "Categoria: " + app.current_category
+                text: "Categoria: " + root.manager.current_category
                 halign: "center"
                 font_size: "24sp"
                 size_hint_y: None
@@ -773,7 +766,7 @@
                 md_bg_color: 0.7, 0.7, 0.7, 1
                 size_hint: 1, None
                 height: "40dp"
-                on_release: app.filter_products("")
+                on_release: root.manager.filter_products("")
 
             # Griglia della tastiera con tutte le lettere A-Z
             MDGridLayout:
@@ -785,132 +778,132 @@
                     text: "A"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("A")
+                    on_release: root.manager.filter_products("A")
                 ClickableBox:
                     text: "B"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("B")
+                    on_release: root.manager.filter_products("B")
                 ClickableBox:
                     text: "C"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("C")
+                    on_release: root.manager.filter_products("C")
                 ClickableBox:
                     text: "D"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("D")
+                    on_release: root.manager.filter_products("D")
                 ClickableBox:
                     text: "E"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("E")
+                    on_release: root.manager.filter_products("E")
                 ClickableBox:
                     text: "F"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("F")
+                    on_release: root.manager.filter_products("F")
                 ClickableBox:
                     text: "G"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("G")
+                    on_release: root.manager.filter_products("G")
                 ClickableBox:
                     text: "H"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("H")
+                    on_release: root.manager.filter_products("H")
                 ClickableBox:
                     text: "I"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("I")
+                    on_release: root.manager.filter_products("I")
                 ClickableBox:
                     text: "J"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("J")
+                    on_release: root.manager.filter_products("J")
                 ClickableBox:
                     text: "K"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("K")
+                    on_release: root.manager.filter_products("K")
                 ClickableBox:
                     text: "L"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("L")
+                    on_release: root.manager.filter_products("L")
                 ClickableBox:
                     text: "M"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("M")
+                    on_release: root.manager.filter_products("M")
                 ClickableBox:
                     text: "N"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("N")
+                    on_release: root.manager.filter_products("N")
                 ClickableBox:
                     text: "O"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("O")
+                    on_release: root.manager.filter_products("O")
                 ClickableBox:
                     text: "P"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("P")
+                    on_release: root.manager.filter_products("P")
                 ClickableBox:
                     text: "Q"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("Q")
+                    on_release: root.manager.filter_products("Q")
                 ClickableBox:
                     text: "R"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("R")
+                    on_release: root.manager.filter_products("R")
                 ClickableBox:
                     text: "S"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("S")
+                    on_release: root.manager.filter_products("S")
                 ClickableBox:
                     text: "T"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("T")
+                    on_release: root.manager.filter_products("T")
                 ClickableBox:
                     text: "U"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("U")
+                    on_release: root.manager.filter_products("U")
                 ClickableBox:
                     text: "V"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("V")
+                    on_release: root.manager.filter_products("V")
                 ClickableBox:
                     text: "W"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("W")
+                    on_release: root.manager.filter_products("W")
                 ClickableBox:
                     text: "X"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("X")
+                    on_release: root.manager.filter_products("X")
                 ClickableBox:
                     text: "Y"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("Y")
+                    on_release: root.manager.filter_products("Y")
                 ClickableBox:
                     text: "Z"
                     size_hint: 1, None
                     height: "80dp"
-                    on_release: app.filter_products("Z")
+                    on_release: root.manager.filter_products("Z")
 
         # -----------------------------
         # Sezione Destra: Riepilogo Ordine (Hero)
@@ -952,7 +945,7 @@
                 MDButton:
                     text: "Conferma Ordine"
                     md_bg_color: 0, 0.5, 0, 1
-                    on_release: app.confirm_order()
+                    on_release: root.manager.confirm_order()
                 MDButton:
                     text: "Torna al Menu"
                     md_bg_color: 1, 0, 0, 1
@@ -993,12 +986,12 @@
             MDButton:
                 text: "Richiama Asporto"
                 style: "elevated"
-                on_release: app.load_orders("Asporto")
+                on_release: root.manager.load_orders("Asporto")
                 text_color: "black"
             MDButton:
                 text: "Richiama Domicilio"
                 style: "elevated"
-                on_release: app.load_orders("Domicilio")
+                on_release: root.manager.load_orders("Domicilio")
                 text_color: "black"
 
 <TimeSelectionScreen>:
@@ -1021,20 +1014,20 @@
             MDButton:
                 text: "19:00"
                 style: "elevated"
-                on_release: app.set_delivery_time("19:00")
+                on_release: root.manager.set_delivery_time("19:00")
                 text_color: "black"
             MDButton:
                 text: "19:15"
                 style: "elevated"
-                on_release: app.set_delivery_time("19:15")
+                on_release: root.manager.set_delivery_time("19:15")
                 text_color: "black"
             MDButton:
                 text: "19:30"
                 style: "elevated"
-                on_release: app.set_delivery_time("19:30")
+                on_release: root.manager.set_delivery_time("19:30")
                 text_color: "black"
             MDButton:
                 text: "19:45"
                 style: "elevated"
-                on_release: app.set_delivery_time("19:45")
+                on_release: root.manager.set_delivery_time("19:45")
                 text_color: "black"
